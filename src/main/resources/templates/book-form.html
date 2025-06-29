@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${book.id == null ? 'Yeni Kitap Ekle' : 'Kitap Düzenle'} + ' - Kütüphane Yönetim Sistemi'">Kitap Formu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .form-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 0;
+        }
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-book-open me-2"></i>Kütüphane Yönetim Sistemi
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i>Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/books"><i class="fas fa-books me-1"></i>Kitaplar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/books/available"><i class="fas fa-check-circle me-1"></i>Mevcut</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/statistics"><i class="fas fa-chart-bar me-1"></i>İstatistikler</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Form Section -->
+    <section class="form-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="form-card">
+                        <div class="text-center mb-4">
+                            <h2>
+                                <i class="fas fa-book me-2"></i>
+                                <span th:text="${book.id == null ? 'Yeni Kitap Ekle' : 'Kitap Düzenle'}">Kitap Formu</span>
+                            </h2>
+                            <p class="text-muted">Kitap bilgilerini doldurun</p>
+                        </div>
+
+                        <form th:action="${book.id == null ? '/books/add' : '/books/edit/' + book.id}" 
+                              th:object="${book}" method="post">
+                            
+                            <div class="row">
+                                <!-- Temel Bilgiler -->
+                                <div class="col-md-6">
+                                    <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i>Temel Bilgiler</h5>
+                                    
+                                    <div class="mb-3">
+                                        <label for="title" class="form-label">Kitap Başlığı *</label>
+                                        <input type="text" class="form-control" id="title" th:field="*{title}" 
+                                               placeholder="Kitap başlığını girin" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="isbn" class="form-label">ISBN *</label>
+                                        <input type="text" class="form-control" id="isbn" th:field="*{isbn}" 
+                                               placeholder="ISBN numarasını girin" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Açıklama</label>
+                                        <textarea class="form-control" id="description" th:field="*{description}" 
+                                                  rows="3" placeholder="Kitap açıklamasını girin"></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="pageCount" class="form-label">Sayfa Sayısı</label>
+                                        <input type="number" class="form-control" id="pageCount" th:field="*{pageCount}" 
+                                               placeholder="Sayfa sayısını girin" min="1">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="publicationYear" class="form-label">Yayın Yılı</label>
+                                        <input type="number" class="form-control" id="publicationYear" th:field="*{publicationYear}" 
+                                               placeholder="Yayın yılını girin" min="1800" max="2024">
+                                    </div>
+                                </div>
+
+                                <!-- Yayın ve Dil Bilgileri -->
+                                <div class="col-md-6">
+                                    <h5 class="mb-3"><i class="fas fa-globe me-2"></i>Yayın ve Dil Bilgileri</h5>
+                                    
+                                    <div class="mb-3">
+                                        <label for="publisher" class="form-label">Yayınevi</label>
+                                        <input type="text" class="form-control" id="publisher" th:field="*{publisher}" 
+                                               placeholder="Yayınevi adını girin">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="language" class="form-label">Dil</label>
+                                        <select class="form-select" id="language" th:field="*{language}">
+                                            <option value="">Dil seçin</option>
+                                            <option value="Türkçe">Türkçe</option>
+                                            <option value="İngilizce">İngilizce</option>
+                                            <option value="Almanca">Almanca</option>
+                                            <option value="Fransızca">Fransızca</option>
+                                            <option value="İspanyolca">İspanyolca</option>
+                                            <option value="İtalyanca">İtalyanca</option>
+                                            <option value="Rusça">Rusça</option>
+                                            <option value="Arapça">Arapça</option>
+                                            <option value="Çince">Çince</option>
+                                            <option value="Japonca">Japonca</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="price" class="form-label">Fiyat (TL)</label>
+                                        <input type="number" class="form-control" id="price" th:field="*{price}" 
+                                               placeholder="Fiyatı girin" step="0.01" min="0">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="location" class="form-label">Kütüphane Konumu</label>
+                                        <input type="text" class="form-control" id="location" th:field="*{location}" 
+                                               placeholder="Örn: A Blok - Raf 1">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="status" class="form-label">Kitap Durumu *</label>
+                                        <select class="form-select" id="status" th:field="*{status}" required>
+                                            <option value="">Durum seçin</option>
+                                            <option th:each="status : ${bookStatuses}" 
+                                                    th:value="${status}" 
+                                                    th:text="${status.displayName}">Durum</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- İlişkiler -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="mb-3"><i class="fas fa-user me-2"></i>Yazar</h5>
+                                    <div class="mb-3">
+                                        <label for="author" class="form-label">Yazar</label>
+                                        <select class="form-select" id="author" th:field="*{author}">
+                                            <option value="">Yazar seçin</option>
+                                            <option th:each="author : ${authors}" 
+                                                    th:value="${author.id}" 
+                                                    th:text="${author.name}">Yazar</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h5 class="mb-3"><i class="fas fa-tags me-2"></i>Kategoriler</h5>
+                                    <div class="mb-3">
+                                        <label class="form-label">Kategoriler</label>
+                                        <div class="row">
+                                            <div class="col-md-6" th:each="category : ${categories}">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           th:value="${category.id}" 
+                                                           th:field="*{categories}" 
+                                                           th:id="'category-' + ${category.id}">
+                                                    <label class="form-check-label" 
+                                                           th:for="'category-' + ${category.id}" 
+                                                           th:text="${category.name}">Kategori</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Butonlar -->
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="/books" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>Geri Dön
+                                </a>
+                                <div>
+                                    <button type="reset" class="btn btn-outline-secondary me-2">
+                                        <i class="fas fa-undo me-1"></i>Sıfırla
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>
+                                        <span th:text="${book.id == null ? 'Kaydet' : 'Güncelle'}">Kaydet</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

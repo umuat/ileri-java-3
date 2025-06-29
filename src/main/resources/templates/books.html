@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitaplar - Kütüphane Yönetim Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .book-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .book-card:hover {
+            transform: translateY(-3px);
+        }
+        .status-badge {
+            font-size: 0.8em;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        .search-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 0;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 0;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-book-open me-2"></i>Kütüphane Yönetim Sistemi
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i>Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/books"><i class="fas fa-books me-1"></i>Kitaplar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/books/available"><i class="fas fa-check-circle me-1"></i>Mevcut</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/statistics"><i class="fas fa-chart-bar me-1"></i>İstatistikler</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about"><i class="fas fa-info-circle me-1"></i>Hakkında</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact"><i class="fas fa-envelope me-1"></i>İletişim</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="text-center mb-4">
+                        <i class="fas fa-search me-2"></i>
+                        <span th:text="${title != null ? title : 'Tüm Kitaplar'}">Kitaplar</span>
+                    </h2>
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <form action="/books/search" method="get" class="row g-3">
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" name="title" placeholder="Kitap başlığı" 
+                                           th:value="${searchTitle}">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" name="authorName" placeholder="Yazar adı" 
+                                           th:value="${searchAuthor}">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" name="categoryName" placeholder="Kategori" 
+                                           th:value="${searchCategory}">
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-select" name="status">
+                                        <option value="">Tüm Durumlar</option>
+                                        <option value="AVAILABLE" th:selected="${searchStatus == T(com.library.entity.BookStatus).AVAILABLE}">Mevcut</option>
+                                        <option value="BORROWED" th:selected="${searchStatus == T(com.library.entity.BookStatus).BORROWED}">Ödünç Verildi</option>
+                                        <option value="RESERVED" th:selected="${searchStatus == T(com.library.entity.BookStatus).RESERVED}">Rezerve Edildi</option>
+                                        <option value="LOST" th:selected="${searchStatus == T(com.library.entity.BookStatus).LOST}">Kayıp</option>
+                                        <option value="DAMAGED" th:selected="${searchStatus == T(com.library.entity.BookStatus).DAMAGED}">Hasarlı</option>
+                                        <option value="UNDER_MAINTENANCE" th:selected="${searchStatus == T(com.library.entity.BookStatus).UNDER_MAINTENANCE}">Bakımda</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-light w-100">
+                                        <i class="fas fa-search me-1"></i>Ara
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Books Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3>
+                            <i class="fas fa-books me-2"></i>
+                            <span th:text="${books.size() + ' kitap bulundu'}">0 kitap bulundu</span>
+                        </h3>
+                        <div class="d-flex gap-2">
+                            <div class="btn-group" role="group">
+                                <a href="/books" class="btn btn-outline-primary">Tümü</a>
+                                <a href="/books/available" class="btn btn-outline-success">Mevcut</a>
+                                <a href="/books/borrowed" class="btn btn-outline-warning">Ödünç</a>
+                                <a href="/books/popular" class="btn btn-outline-info">Popüler</a>
+                                <a href="/books/old" class="btn btn-outline-secondary">Eski</a>
+                            </div>
+                            <a href="/books/add" class="btn btn-success">
+                                <i class="fas fa-plus me-1"></i>Yeni Kitap Ekle
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Debug Section -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <strong>Debug Bilgisi:</strong>
+                        <br>
+                        <span th:text="'Toplam kitap sayısı: ' + ${books.size()}">0</span>
+                        <br>
+                        <span th:text="'Kitaplar boş mu: ' + ${books.empty}">true</span>
+                        <br>
+                        <span th:if="${!books.empty}" th:text="'İlk kitap: ' + ${books[0].title}">Kitap</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Flash Messages -->
+            <div class="row" th:if="${success}">
+                <div class="col-12">
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span th:text="${success}">Başarı mesajı</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row" th:if="${error}">
+                <div class="col-12">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span th:text="${error}">Hata mesajı</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row" th:if="${books.empty}">
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Henüz kitap bulunmamaktadır.
+                        <br>
+                        <a href="/books/add" class="btn btn-primary mt-2">
+                            <i class="fas fa-plus me-1"></i>İlk Kitabı Ekle
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row" th:if="${!books.empty}">
+                <div class="col-md-6 col-lg-4" th:each="book : ${books}">
+                    <div class="book-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0" th:text="${book.title}">Kitap Başlığı</h5>
+                            <span class="status-badge" 
+                                  th:class="${book.status == T(com.library.entity.BookStatus).AVAILABLE ? 'bg-success' : 
+                                            book.status == T(com.library.entity.BookStatus).BORROWED ? 'bg-warning' : 
+                                            book.status == T(com.library.entity.BookStatus).RESERVED ? 'bg-info' : 
+                                            book.status == T(com.library.entity.BookStatus).LOST ? 'bg-danger' : 
+                                            book.status == T(com.library.entity.BookStatus).DAMAGED ? 'bg-dark' : 'bg-secondary'}"
+                                  th:text="${book.status.displayName}">Durum</span>
+                        </div>
+                        
+                        <p class="text-muted mb-2" th:if="${book.author}">
+                            <i class="fas fa-user me-1"></i>
+                            <span th:text="${book.author.name}">Yazar</span>
+                        </p>
+                        
+                        <p class="text-muted mb-2" th:if="${book.publicationYear}">
+                            <i class="fas fa-calendar me-1"></i>
+                            <span th:text="${book.publicationYear}">Yıl</span>
+                        </p>
+                        
+                        <p class="text-muted mb-2" th:if="${book.publisher}">
+                            <i class="fas fa-building me-1"></i>
+                            <span th:text="${book.publisher}">Yayınevi</span>
+                        </p>
+                        
+                        <p class="text-muted mb-2" th:if="${book.language}">
+                            <i class="fas fa-language me-1"></i>
+                            <span th:text="${book.language}">Dil</span>
+                        </p>
+                        
+                        <p class="text-muted mb-2" th:if="${book.isbn}">
+                            <i class="fas fa-barcode me-1"></i>
+                            <span th:text="${book.isbn}">ISBN</span>
+                        </p>
+                        
+                        <p class="text-muted mb-2" th:if="${book.location}">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            <span th:text="${book.location}">Konum</span>
+                        </p>
+                        
+                        <div class="mb-3" th:if="${!book.categories.empty}">
+                            <small class="text-muted">
+                                <i class="fas fa-tags me-1"></i>
+                                <span th:each="category, iterStat : ${book.categories}" 
+                                      th:text="${category.name + (iterStat.last ? '' : ', ')}">Kategori</span>
+                            </small>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted" th:if="${book.pageCount}">
+                                    <i class="fas fa-file-alt me-1"></i>
+                                    <span th:text="${book.pageCount + ' sayfa'}">Sayfa</span>
+                                </small>
+                                <br>
+                                <small class="text-muted" th:if="${book.price}">
+                                    <i class="fas fa-lira-sign me-1"></i>
+                                    <span th:text="${book.price + ' TL'}">Fiyat</span>
+                                </small>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <a th:href="@{'/books/edit/' + ${book.id}}" 
+                                   class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-edit me-1"></i>Düzenle
+                                </a>
+                                <button class="btn btn-outline-danger btn-sm" 
+                                        th:onclick="'deleteBook(' + ${book.id} + ', \'' + ${book.title} + '\')'">
+                                    <i class="fas fa-trash me-1"></i>Sil
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-book-open me-2"></i>Kütüphane Yönetim Sistemi</h5>
+                    <p>Modern ve kullanıcı dostu kütüphane yönetim platformu. Java 8, Spring Boot ve modern web teknolojileri ile geliştirilmiştir.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Hızlı Linkler</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/books" class="text-light">Kitaplar</a></li>
+                        <li><a href="/statistics" class="text-light">İstatistikler</a></li>
+                        <li><a href="/about" class="text-light">Hakkında</a></li>
+                        <li><a href="/contact" class="text-light">İletişim</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Teknolojiler</h5>
+                    <ul class="list-unstyled">
+                        <li><span class="text-light">Java 8+</span></li>
+                        <li><span class="text-light">Spring Boot</span></li>
+                        <li><span class="text-light">H2 Database</span></li>
+                        <li><span class="text-light">Thymeleaf</span></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="mb-0">&copy; 2024 Kütüphane Yönetim Sistemi. Tüm hakları saklıdır.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Book Details Modal -->
+    <div class="modal fade" id="bookDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Kitap Detayları</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="bookDetailsContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function deleteBook(bookId, bookTitle) {
+            if (confirm(`"${bookTitle}" kitabını silmek istediğinizden emin misiniz?`)) {
+                // Form oluştur ve gönder
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/books/delete/${bookId}`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function showBookDetails(bookId) {
+            fetch(`/api/books/${bookId}`)
+                .then(response => response.json())
+                .then(book => {
+                    const content = `
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h4>${book.title}</h4>
+                                <p><strong>Yazar:</strong> ${book.author ? book.author.name : 'Belirtilmemiş'}</p>
+                                <p><strong>Yayın Yılı:</strong> ${book.publicationYear || 'Belirtilmemiş'}</p>
+                                <p><strong>Yayınevi:</strong> ${book.publisher || 'Belirtilmemiş'}</p>
+                                <p><strong>Dil:</strong> ${book.language || 'Belirtilmemiş'}</p>
+                                <p><strong>ISBN:</strong> ${book.isbn || 'Belirtilmemiş'}</p>
+                                <p><strong>Sayfa Sayısı:</strong> ${book.pageCount || 'Belirtilmemiş'}</p>
+                                <p><strong>Fiyat:</strong> ${book.price ? book.price + ' TL' : 'Belirtilmemiş'}</p>
+                                <p><strong>Konum:</strong> ${book.location || 'Belirtilmemiş'}</p>
+                                <p><strong>Durum:</strong> <span class="badge bg-${getStatusColor(book.status)}">${book.status.displayName}</span></p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Açıklama:</strong></p>
+                                <p>${book.description || 'Açıklama bulunmamaktadır.'}</p>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('bookDetailsContent').innerHTML = content;
+                    new bootstrap.Modal(document.getElementById('bookDetailsModal')).show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Kitap detayları yüklenirken hata oluştu.');
+                });
+        }
+
+        function getStatusColor(status) {
+            switch(status) {
+                case 'AVAILABLE': return 'success';
+                case 'BORROWED': return 'warning';
+                case 'RESERVED': return 'info';
+                case 'LOST': return 'danger';
+                case 'DAMAGED': return 'dark';
+                case 'UNDER_MAINTENANCE': return 'secondary';
+                default: return 'secondary';
+            }
+        }
+    </script>
+</body>
+</html> 
