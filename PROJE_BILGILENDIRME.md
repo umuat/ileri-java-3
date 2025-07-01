@@ -1,7 +1,7 @@
 # Kütüphane Yönetim Sistemi - Proje Bilgilendirme Notu
 
 ## Proje Hakkında
-Bu proje, Java 8+ ve Spring Boot kullanılarak geliştirilmiş modern bir kütüphane yönetim sistemidir. Proje, öğretim görevlisinin belirttiği Java konularını kapsamlı bir şekilde ele almaktadır.
+Bu proje, Java 8+ ve Spring Boot kullanılarak geliştirilmiş modern bir kütüphane yönetim sistemidir. Proje,  Java konularını kapsamlı bir şekilde ele almaktadır.
 
 ## Kullanılan Java Konuları
 

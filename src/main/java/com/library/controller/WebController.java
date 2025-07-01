@@ -279,7 +279,7 @@ public class WebController {
         log.info("Kitap düzenleme formu yükleniyor, ID: {}", id);
         
         Optional<Book> bookOpt = bookService.findById(id);
-        if (bookOpt.isEmpty()) {
+        if (!bookOpt.isPresent()) {
             return "redirect:/books";
         }
         
